@@ -1,0 +1,23 @@
+{
+  "name": "gis-pdf-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@esri/arcgis-rest-feature-service": "^4.0.6",
+    "@esri/arcgis-rest-request": "^4.2.3",
+    "body-parser": "^1.20.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "node-fetch": "^2.7.0",
+    "pandadoc-node-client": "^6.2.0"
+  }
+}

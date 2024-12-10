@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate PDF Report</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Generate PDF Report</h1>
+        <form id="reportForm">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email:</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="mb-3">
+                <label for="management" class="form-label">Management:</label>
+                <select id="management" name="management" class="form-select" required>
+                    <option value="">Select Management</option>
+                    <% for(let item of managementData) { %>
+                        <option value="<%= item.management %>"><%= item.management %></option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="clientName" class="form-label">Client Name:</label>
+                <select id="clientName" name="clientName" class="form-select" required disabled>
+                    <option value="">Select Client Name</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="template" class="form-label">Choose a Template:</label>
+                <select id="template" name="template" class="form-select" required>
+                    <option value="">Select Template</option>
+                    <option value="template1">Template 1</option>
+                    <option value="template2">Template 2</option>
+                    <option value="template3">Template 3</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+        </form>
+    </div>
+
+    <!-- Store data in a hidden element -->
+    <script type="application/json" id="management-data">
+        <%- JSON.stringify(managementData) %>
+    </script>
+
+    <script>
+        // Get the data from the hidden element
+        const managementData = JSON.parse(document.getElementById('management-data').textContent);
+        
+        // Get DOM elements
+        const managementSelect = document.getElementById('management');
+        const clientSelect = document.getElementById('clientName');
+
+        // Handle management selection change
+        managementSelect.addEventListener('change', function() {
+            // Reset client select
+            clientSelect.innerHTML = '<option value="">Select Client Name</option>';
+            clientSelect.disabled = true;
+
+            if (this.value) {
+                const selected = managementData.find(m => m.management === this.value);
+                if (selected && selected.clientnames) {
+                    selected.clientnames.forEach(client => {
+                        const option = document.createElement('option');
+                        option.value = client;
+                        option.textContent = client;
+                        clientSelect.appendChild(option);
+                    });
+                    clientSelect.disabled = false;
+                }
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('reportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                email: document.getElementById('email').value,
+                management: managementSelect.value,
+                clientName: clientSelect.value,
+                template: document.getElementById('template').value
+            };
+
+            fetch('/api/generate-report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                alert('Report generation initiated.');
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Error generating report.');
+            });
+        });
+    </script>
+</body>
+</html>

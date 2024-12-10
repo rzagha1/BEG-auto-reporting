@@ -1,0 +1,11 @@
+management = general 
+clientname = address
+
+globalid to parent_globalid
+
+interface dropdown will be clientname/address, return inspection points i need share field=yes
+
+pandadoc api = 8a6b9db502ab1974003eda429484279251eedf53
+
+dates drop down
+
