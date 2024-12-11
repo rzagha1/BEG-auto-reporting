@@ -31,11 +31,7 @@ app.get('/healthcheck', (req, res) => {
     res.send('Server is up and running')
 })
 
-app.use('/api', queryRoutes);  // Changed from 'api/' to '/api'
-
-app.get('/test', function (req, res) {
-    res.send('test')
-})
+app.use('/api', queryRoutes); 
 
 // Start the server
 const PORT = process.env.PORT || 3000

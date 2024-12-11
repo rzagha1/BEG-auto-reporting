@@ -1,0 +1,43 @@
+services:
+  app-dev:
+    container_name: gis-pdf-app-dev
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NODEMON_LEGACY_WATCH=true
+      - CHOKIDAR_USEPOLLING=true
+    # Updated healthcheck to use simpler node check
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/healthcheck', (r) => process.exit(r.statusCode > 299))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    command: nodemon --legacy-watch app.js
+    env_file: .env.development
+
+  app-prod:
+    container_name: gis-pdf-app-prod
+    build:
+      context: .
+      target: production
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/healthcheck', (r) => process.exit(r.statusCode > 299))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    env_file: .env.production
