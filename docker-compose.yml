@@ -9,19 +9,19 @@ services:
       - /usr/src/app/node_modules
     ports:
       - "3000:3000"
+      - "9229:9229"  # Debug port
     environment:
       - NODE_ENV=development
       - NODEMON_LEGACY_WATCH=true
       - CHOKIDAR_USEPOLLING=true
-    # Updated healthcheck to use simpler node check
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/healthcheck', (r) => process.exit(r.statusCode > 299))"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 15s
     restart: unless-stopped
-    command: nodemon --legacy-watch app.js
+    command: nodemon --inspect=0.0.0.0:9229 --legacy-watch app.js
     env_file: .env.development
 
   app-prod:

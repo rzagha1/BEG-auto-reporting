@@ -11,72 +11,53 @@ class PandadocService {
     }
 
     async createDocumentFromTemplate(data) {
-        const documentCreateRequest = {
-            name: `Report for ${data.clientName}`,
-            templateUuid: config.pandaTemplateID,
-            recipients: [
-                {
-                    email: "ralph@ziggyspatial.com",
-                    firstName: "Recipient",
-                    lastName: "Name"
-                }
-            ],
-            fields: {
-                "Conditions.IsHighPriority": {
-                    value: data.isHighPriority ? "true" : "false",
-                    title: "High Priority Flag"
-                },
-                "Conditions.HasSpecialRequirements": {
-                    value: data.specialRequirements ? "true" : "false",
-                    title: "Special Requirements Flag"
-                },
-                "Conditions.NeedsExtraReview": {
-                    value: data.needsExtraReview ? "true" : "false",
-                    title: "Needs Review Flag"
-                },
-                "Conditions.HasInspectionData": {
-                    value: data.inspectionData?.length > 0 ? "true" : "false",
-                    title: "Has Inspection Data Flag"
-                },
-                "Content.RequirementsNote": {
-                    value: data.specialRequirements || "N/A",
-                    title: "Requirements Note"
-                },
-                "Content.ReviewLevel": {
-                    value: data.reviewLevel || "Standard Review",
-                    title: "Review Level"
-                },
-                "InspectionData.Summary": {
-                    value: this.generateInspectionSummary(data.inspectionData),
-                    title: "Inspection Summary"
-                }
-            },
-            tokens: [
-                { name: "Sender.Company", value: "Ziggy Spatial" },
-                { name: "Client.FirstName", value: data.clientName.split(' ')[0] },
-                { name: "Client.LastName", value: data.clientName.split(' ')[1] || '' },
-                { name: "Document.CreatedDate", value: new Date().toLocaleDateString() }
-            ],
-            metadata: {
-                clientName: data.clientName,
-                management: data.management
-            },
-            tags: ["created_via_api", "management_report"]
-        };
+        try {
+            // Collect all images first
+             const images = [];
+            for (const [category, categoryImages] of Object.entries(data.categoryImages)) {
+                if (!categoryImages || categoryImages.length === 0) continue;
 
-        return await this.apiInstance.createDocument({
-            documentCreateRequest: documentCreateRequest,
-        });
-    }
+                categoryImages.forEach((image, index) => {
+                    images.push({
+                        name: image.block_id,
+                        urls: [image.url]
+                    });
+                });
+            }
 
-    generateInspectionSummary(inspectionData) {
-        if (!inspectionData || inspectionData.length === 0) {
-            return "No inspection data available";
+            // Create document request
+            const documentCreateRequest = {
+                name: `Building Inspection Report - ${data.clientName}`,
+                templateUuid: config.pandaTemplateID,
+                recipients: [
+                    {
+                        email: "ralph@ziggyspatial.com",
+                        firstName: "Ralph",
+                        lastName: "Zagha"
+                    }
+                ],
+                tokens: [
+                    { name: "Client.Name", value: data.clientName },
+                    { name: "Management.Company", value: data.management },
+                    { name: "Report.Month", value: new Date().toLocaleString('en-US', { month: 'long' }) },
+                    { name: "Report.Year", value: new Date().getFullYear().toString() }
+                ],
+                metadata: {
+                    clientName: data.clientName,
+                    management: data.management
+                },
+                tags: ["inspection_report", "building_maintenance"],
+                images: images  // Add images at root level
+            };
+
+            console.log('Document Request:', JSON.stringify(documentCreateRequest, null, 2));
+            return await this.apiInstance.createDocument({
+                documentCreateRequest
+            });
+        } catch (error) {
+            console.error('Error creating document:', error);
+            throw error;
         }
-
-        return `Number of Inspections: ${inspectionData.length}\n` +
-               `Latest Inspection Date: ${inspectionData[0].inspectiondate || 'N/A'}\n` +
-               `Inspector: ${inspectionData[0].inspector || 'N/A'}`;
     }
 
     async ensureDocumentCreated(document) {
@@ -87,11 +68,15 @@ class PandadocService {
             await new Promise(r => setTimeout(r, 2000));
             retries++;
 
-            let response = await this.apiInstance.statusDocument({
-                id: String(document.id),
-            });
-            if (response.status === "document.draft") {
-                return;
+            try {
+                let response = await this.apiInstance.statusDocument({
+                    id: String(document.id),
+                });
+                if (response.status === "document.draft") {
+                    return;
+                }
+            } catch (error) {
+                console.error(`Error checking document status (attempt ${retries}):`, error);
             }
         }
 
@@ -99,14 +84,19 @@ class PandadocService {
     }
 
     async sendDocument(document) {
-        await this.apiInstance.sendDocument({
-            id: String(document.id),
-            documentSendRequest: {
-                silent: false,
-                subject: "Your Property Management Report",
-                message: "Your property management report is ready for review.",
-            },
-        });
+        try {
+            await this.apiInstance.sendDocument({
+                id: String(document.id),
+                documentSendRequest: {
+                    silent: false,
+                    subject: "Your Building Inspection Report",
+                    message: "Your building inspection report is ready for review.",
+                },
+            });
+        } catch (error) {
+            console.error('Error sending document:', error);
+            throw error;
+        }
     }
 }
 
