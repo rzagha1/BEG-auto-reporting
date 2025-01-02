@@ -3,11 +3,13 @@ const app = express()
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
-const path = require('path')  // Add this line to import the path module
+const path = require('path')
 const queryRoutes = require('./routes/query')
+const QueryController = require('./controllers/queryController')  // Add this line
+const queryController = new QueryController()  // Add this line
 
 // Essential middleware
-app.use(express.json()) // Parse JSON payloads
+app.use(express.json())
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(
@@ -24,11 +26,13 @@ app.use((req, res, next) => {
 // Set up EJS
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-// Add this specific route for images
-app.use('/api/images', express.static(path.join(__dirname, 'public/images')));
 
-// Keep your existing static middleware
+// Static file serving
+app.use('/api/images', express.static(path.join(__dirname, 'public/images')));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve the form at root
+app.get('/', queryController.getFormData.bind(queryController));
 
 // Routes
 app.get('/healthcheck', (req, res) => {
@@ -37,8 +41,7 @@ app.get('/healthcheck', (req, res) => {
 
 app.use('/api', queryRoutes); 
 
-// Start the server
-const PORT = process.env.PORT || 1000
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 10000
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`)
 })
