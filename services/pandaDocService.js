@@ -13,7 +13,6 @@ class PandadocService {
     async createDocumentFromTemplate(data) {
         try {
             // Collect all images first
-            debugger
              const images = [];
             for (const [category, categoryImages] of Object.entries(data.categoryImages)) {
                 if (!categoryImages || categoryImages.length === 0) continue;

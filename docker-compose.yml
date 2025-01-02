@@ -7,8 +7,9 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
+      - feature_images:/usr/src/app/feature_images  # Add this line
     ports:
-      - "3000:3000"
+      - "1000:1000"
       - "9229:9229"  # Debug port
     environment:
       - NODE_ENV=development
@@ -29,8 +30,10 @@ services:
     build:
       context: .
       target: production
+    volumes:
+      - feature_images:/usr/src/app/feature_images  # Add this line
     ports:
-      - "3000:3000"
+      - "1000:1000"
     environment:
       - NODE_ENV=production
     healthcheck:
@@ -41,3 +44,7 @@ services:
       start_period: 40s
     restart: unless-stopped
     env_file: .env.production
+
+# Add volumes definition
+volumes:
+  feature_images:
