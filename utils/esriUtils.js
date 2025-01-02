@@ -76,8 +76,8 @@ async function queryFeaturesWithAttachments(url, fields, where = '1=1', maxRecor
     );
     
     // Download the images and get the results
-    const downloadResults = await downloadAllImages(featuresWithPicUrl, './feature_images');
-    console.log('Download results:', downloadResults);
+    //const downloadResults = await downloadAllImages(featuresWithPicUrl, './feature_images');
+    //console.log('Download results:', downloadResults);
     
     return featuresWithPicUrl;
   }

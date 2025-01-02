@@ -37,7 +37,7 @@ services:
     environment:
       - NODE_ENV=production
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/healthcheck', (r) => process.exit(r.statusCode > 299))"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:1000/healthcheck', (r) => process.exit(r.statusCode > 299))"]
       interval: 30s
       timeout: 10s
       retries: 3

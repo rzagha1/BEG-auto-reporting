@@ -24,6 +24,10 @@ app.use((req, res, next) => {
 // Set up EJS
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+// Add this specific route for images
+app.use('/api/images', express.static(path.join(__dirname, 'public/images')));
+
+// Keep your existing static middleware
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
