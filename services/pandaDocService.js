@@ -33,8 +33,8 @@ class PandadocService {
                 recipients: [
                     {
                         email: data.email,
-                        firstName: "Ralph",
-                        lastName: "Zagha"
+                        firstName: data.fn,
+                        lastName: data.ln
                     }
                 ],
                 tokens: [
