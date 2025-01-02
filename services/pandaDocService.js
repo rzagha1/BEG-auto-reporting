@@ -13,6 +13,7 @@ class PandadocService {
     async createDocumentFromTemplate(data) {
         try {
             // Collect all images first
+            debugger
              const images = [];
             for (const [category, categoryImages] of Object.entries(data.categoryImages)) {
                 if (!categoryImages || categoryImages.length === 0) continue;
@@ -20,7 +21,7 @@ class PandadocService {
                 categoryImages.forEach((image, index) => {
                     images.push({
                         name: image.block_id,
-                        urls: [image.url]
+                        urls: [image.url+'?w=100'],
                     });
                 });
             }
@@ -31,14 +32,16 @@ class PandadocService {
                 templateUuid: config.pandaTemplateID,
                 recipients: [
                     {
-                        email: "ralph@ziggyspatial.com",
+                        email: data.email,
                         firstName: "Ralph",
                         lastName: "Zagha"
                     }
                 ],
                 tokens: [
-                    { name: "Client.Name", value: data.clientName },
-                    { name: "Management.Company", value: data.management },
+                    { name: "Client.StreetAddress", value: data.clientName },
+                    { name: "Client.Company", value: data.management },
+                    { name: "Client.FirstName", value: data.fn },
+                    { name: "Client.LastName", value: data.ln },
                     { name: "Report.Month", value: new Date().toLocaleString('en-US', { month: 'long' }) },
                     { name: "Report.Year", value: new Date().getFullYear().toString() }
                 ],

@@ -1,4 +1,4 @@
-const { queryEsriFeatures, queryFeaturesWithAttachments } = require('../utils/esriUtils');
+const { queryEsriFeatures,queryEsriFeaturesBasic, queryFeaturesWithAttachments } = require('../utils/esriUtils');
 const config = require('../config');
 const PandadocService = require('./pandaDocService');
 
@@ -9,7 +9,7 @@ class QueryService {
 
     async getClientData() {
         try {
-            const fields = ['objectid', 'globalid', 'clientname', 'management'];
+            const fields = ['objectid', 'globalid', 'clientname', 'management','firstname','lastname'];
             const clientData = await queryEsriFeatures(config.clientUrl, fields);
             return clientData;
         } catch (error) {
@@ -18,7 +18,7 @@ class QueryService {
         }
     }
 
-    async getReportData(management, clientName) {
+    async getReportData(clientName) {
         try {
             const fields = [
                 'objectid',
@@ -42,8 +42,8 @@ class QueryService {
         const categoryImages = {};
         
         // Initialize categories
-        Object.keys(REPORT_CATEGORIES).forEach(category => {
-            categoryImages[category] = [];
+        Object.keys(CATEGORY_MAPPING).forEach(prefix => {
+            categoryImages[prefix] = [];
         });
 
         // Process each report item
@@ -51,43 +51,62 @@ class QueryService {
             const itemCategory = (item.Category || '').toLowerCase();
             const itemChoice = (item.Choice || '').toLowerCase();
 
-            // Check each report category
-            Object.entries(REPORT_CATEGORIES).forEach(([key, reportCategory]) => {
-                const matches = reportCategory.conditions.some(condition => 
-                    condition.category.toLowerCase() === itemCategory &&
-                    condition.choices.includes(itemChoice)
-                );
-
-                if (matches && item.picUrl) {
-                    // Get current count of images in this category
-                    const imageIndex = categoryImages[key].length + 1;
-                    
-                    // Only add if we haven't reached 6 images yet
+            // Find matching category
+            let matched = false;
+            for (const [prefix, category] of Object.entries(CATEGORY_MAPPING)) {
+                if (category.matches.some(([cat, choices]) => 
+                    cat === itemCategory && choices.includes(itemChoice)
+                )) {
+                    matched = true;
+                    const imageIndex = categoryImages[prefix].length + 1;
                     if (imageIndex <= 6) {
-                        categoryImages[key].push({
+                        categoryImages[prefix].push({
                             objectid: item.objectid,
                             url: item.picUrl,
                             category: itemCategory,
                             choice: itemChoice,
                             inspectionDate: item.InspectionDate,
-                            pageNumber: reportCategory.pageNumber,
-                            block_id: `${reportCategory.blockIdPrefix}${imageIndex}`
+                            pageNumber: category.page,
+                            block_id: `${prefix}${imageIndex}`
                         });
                     }
+                    break;
                 }
-            });
+            }
+
+            // If no match found, add to other issues
+            if (!matched && item.picUrl) {
+                const imageIndex = categoryImages['oi'].length + 1;
+                if (imageIndex <= 6) {
+                    categoryImages['oi'].push({
+                        objectid: item.objectid,
+                        url: item.picUrl,
+                        category: itemCategory,
+                        choice: itemChoice,
+                        inspectionDate: item.InspectionDate,
+                        pageNumber: CATEGORY_MAPPING['oi'].page,
+                        block_id: `oi${imageIndex}`
+                    });
+                }
+            }
         });
+
         return categoryImages;
     }
 
-    async generateReport(management, clientName) {
+    async generateReport(email,management, clientName) {
         try {
-            const categoryImages = await this.getReportData(management, clientName);
-  
+            const clientInfo = await queryEsriFeaturesBasic(config.clientUrl,['firstname','lastname'],`management='${management}' and clientname='${clientName}'`)
+            const categoryImages = await this.getReportData(clientName);       
+            const fn= clientInfo[0].firstname;
+            const ln=clientInfo[0].lastname;
             const document = await this.pandadocService.createDocumentFromTemplate({
+                email,
                 clientName,
                 management,
-                categoryImages
+                categoryImages,
+                fn,
+                ln
             });
 
             await this.pandadocService.ensureDocumentCreated(document);
@@ -104,98 +123,79 @@ class QueryService {
     }
 }
 
-const REPORT_CATEGORIES = {
-    'deterioratedJointSealants': {
-        pageNumber: 4,
-        title: 'DETERIORATED JOINT SEALANTS (CAULKING)',
-        blockIdPrefix: 'djsc',
-        conditions: [
-            { 
-                category: 'caulking', 
-                choices: ['bad', 'failed', 'large gaps', 'missing', 'old/poor condition', 'deteriorated']
-            }
+// Simplified category mapping using blockIdPrefix as key
+const CATEGORY_MAPPING = {
+    'djsc': {
+        page: 4,
+        matches: [
+            ['caulking', ['bad', 'failed', 'large gaps', 'missing', 'old/poor condition', 'deteriorated']]
         ]
     },
-    'windowGlazing': {
-        pageNumber: 6,
-        title: 'WINDOW GLAZING',
-        blockIdPrefix: 'wg',
-        conditions: [
-            { 
-                category: 'window glazing', 
-                choices: ['deteriorated', 'missing']
-            }
+    'wg': {
+        page: 6,
+        matches: [
+            ['window glazing', ['deteriorated', 'missing']]
         ]
     },
-    'crackedMasonry': {
-        pageNumber: 8,
-        title: 'CRACKED BRICK, STONE, MASONRY, OR CONCRETE',
-        blockIdPrefix: 'csmc',
-        conditions: [
-            { category: 'brick', choices: ['broken brick'] },
-            { category: 'concrete', choices: ['cracking', 'cracks', 'falling apart', 'something wrong'] },
-            { category: 'stone', choices: ['bad', 'broken', 'cracking'] },
-            { category: 'facade surface', choices: ['damaged'] }
+    'csmc': {
+        page: 8,
+        matches: [
+            ['brick', ['broken brick']],
+            ['concrete', ['cracking', 'cracks', 'falling apart', 'something wrong']],
+            ['stone', ['bad', 'broken', 'cracking']],
+            ['facade surface', ['damaged']]
         ]
     },
-    'spalledMasonry': {
-        pageNumber: 10,
-        title: 'SPALLED BRICK, STONE, MASONRY, CONCRETE',
-        blockIdPrefix: 'sbsmc',
-        conditions: [
-            { category: 'concrete', choices: ['spalling'] },
-            { category: 'stone', choices: ['spalling'] }
+    'sbsmc': {
+        page: 10,
+        matches: [
+            ['concrete', ['spalling']],
+            ['stone', ['spalling']]
         ]
     },
-    'mortarJoints': {
-        pageNumber: 12,
-        title: 'MORTAR JOINTS ISSUES',
-        blockIdPrefix: 'mhi',
-        conditions: [
-            { category: 'brick', choices: ['bad mortar'] }
+    'mhi': {
+        page: 12,
+        matches: [
+            ['brick', ['bad mortar']]
         ]
     },
-    'paintCoating': {
-        pageNumber: 14,
-        title: 'PAINT / FACADE COATING ISSUES',
-        blockIdPrefix: 'pfci',
-        conditions: [
-            { category: 'coating', choices: ['needed', 'peeling', 'worn out'] },
-            { category: 'paint', choices: ['bad'] }
+    'pfci': {
+        page: 14,
+        matches: [
+            ['coating', ['needed', 'peeling', 'worn out']],
+            ['paint', ['bad']]
         ]
     },
-    'facadeStaining': {
-        pageNumber: 16,
-        title: 'FACADE STAINING',
-        blockIdPrefix: 'fs',
-        conditions: [
-            { category: 'concrete', choices: ['staining'] },
-            { category: 'façade surface', choices: ['dirty', 'needs powerwash'] },
-            { category: 'walls', choices: ['dirty'] }
+    'fs': {
+        page: 16,
+        matches: [
+            ['concrete', ['staining']],
+            ['façade surface', ['dirty', 'needs powerwash']],
+            ['walls', ['dirty']]
         ]
     },
-    'windowStaining': {
-        pageNumber: 18,
-        title: 'WINDOW STAINING',
-        blockIdPrefix: 'ws',
-        conditions: [
-            { category: 'glass', choices: ['stained'] }
+    'ws': {
+        page: 18,
+        matches: [
+            ['glass', ['stained']]
         ]
     },
-    'noIssues': {
-        pageNumber: 22,
-        title: 'NO ISSUES',
-        blockIdPrefix: 'ni',
-        conditions: [
-            { category: 'caulking', choices: ['good'] },
-            { category: 'glass', choices: ['good'] },
-            { category: 'window glazing', choices: ['good'] },
-            { category: 'coating', choices: ['good'] },
-            { category: 'concrete', choices: ['good'] },
-            { category: 'façade surface', choices: ['good'] },
-            { category: 'paint', choices: ['good'] },
-            { category: 'stone', choices: ['good'] },
-            { category: 'walls', choices: ['good'] }
+    'oi': {
+        page: 20,
+        matches: []  // Catches all unmatched categories
+    },
+    'ni': {
+        page: 22,
+        matches: [
+            ['caulking', ['good']],
+            ['glass', ['good']],
+            ['window glazing', ['good']],
+            ['coating', ['good']],
+            ['concrete', ['good']],
+            ['façade surface', ['good']],
+            ['paint', ['good']],
+            ['stone', ['good']],
+            ['walls', ['good']]
         ]
     }
 };

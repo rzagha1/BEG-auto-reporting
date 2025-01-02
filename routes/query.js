@@ -5,6 +5,6 @@ const router = express.Router();
 const queryController = new QueryController();
 
 router.get('/features', queryController.getFormData.bind(queryController));
-router.post('/generate-report', queryController.generateReport.bind(queryController));
+router.post('/generate-report', queryController.inputToGenerateReport.bind(queryController));
 
 module.exports = router;

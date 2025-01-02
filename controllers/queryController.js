@@ -36,7 +36,7 @@ class QueryController {
         try {
             // Create organized data structure
             const managementMap = features.reduce((acc, curr) => {
-                const { management, clientname } = curr;
+                const { management, clientname,firstname,lastname } = curr;
                 
                 if (!management || !clientname) {
                     return acc;
@@ -44,6 +44,8 @@ class QueryController {
 
                 const cleanManagement = this.sanitizeString(management);
                 const cleanClientname = this.sanitizeString(clientname);
+                const fn = this.sanitizeString(firstname);
+                const ln = this.sanitizeString(lastname);
                 
                 if (!cleanManagement || !cleanClientname) {
                     return acc;
@@ -52,11 +54,15 @@ class QueryController {
                 if (!acc[cleanManagement]) {
                     acc[cleanManagement] = {
                         management: cleanManagement,
-                        clientnames: new Set()
+                        clientnames: new Set(),
+                        firstname: fn,
+                        lastname: ln
                     };
                 }
 
                 acc[cleanManagement].clientnames.add(cleanClientname);
+                acc[cleanManagement].firstname=fn;
+                acc[cleanManagement].lastname=ln;
                 return acc;
             }, {});
 
@@ -83,7 +89,7 @@ class QueryController {
             .replace(/\s+/g, ' '); // Normalize whitespace
     }
 
-    async generateReport(req, res) {
+    async inputToGenerateReport(req, res) {
         try {
             // Validate request body
             const validationError = this.validateReportRequest(req.body);
@@ -92,14 +98,13 @@ class QueryController {
                     error: validationError 
                 });
             }
-
-            const { email, management, clientName, template } = req.body;
+            const { email, management, clientName } = req.body;
 
             // Generate report
             const result = await this.queryService.generateReport(
+                email,
                 management, 
-                clientName, 
-                template
+                clientName
             );
 
             // Send success response

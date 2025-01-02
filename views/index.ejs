@@ -3,110 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate PDF Report</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>LifeCycle360 - Report Generator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --blue: #295782;
+            --gold: #B18A47;
+            --cool-black: #061C38;
+            --off-white: #F7F8F6;
+        }
         body {
-            padding: 20px;
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--cool-black) 100%);
+            min-height: 100vh;
+        }
+        h1, h2, .syne-font {
+            font-family: 'Syne', sans-serif;
+        }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px 0 rgba(6, 28, 56, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+        .input-focus:focus {
+            transform: translateY(-1px);
+        }
+        .shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23295782'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1 class="mb-4">Generate PDF Report</h1>
-        <form id="reportForm">
-            <div class="mb-3">
-                <label for="email" class="form-label">Email:</label>
-                <input type="email" class="form-control" id="email" name="email" required>
+<body class="p-6 md:p-0">
+    <div class="max-w-3xl mx-auto min-h-screen flex flex-col justify-center py-12">
+        <!-- Logo - Increased size -->
+        <div class="flex justify-center mb-8">
+            <img src="/images/logo.png" alt="LifeCycle360 Logo" class="h-52 w-auto drop-shadow-lg">
+        </div>
+
+        <!-- Main Card - Reduced max-width -->
+        <div class="glass-morphism rounded-2xl overflow-hidden shine max-w-2xl mx-auto w-full">
+            <!-- Header -->
+            <div style="background-color: #295782;" class="p-8">
+                <h1 class="text-[22px] leading-[24.2px] font-bold text-[#F7F8F6] tracking-normal">
+                    Enterprise Report Generator
+                </h1>
             </div>
-            <div class="mb-3">
-                <label for="management" class="form-label">Management:</label>
-                <select id="management" name="management" class="form-select" required>
-                    <option value="">Select Management</option>
-                    <% for(let item of managementData) { %>
-                        <option value="<%= item.management %>"><%= item.management %></option>
-                    <% } %>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="clientName" class="form-label">Client Name:</label>
-                <select id="clientName" name="clientName" class="form-select" required disabled>
-                    <option value="">Select Client Name</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="template" class="form-label">Choose a Template:</label>
-                <select id="template" name="template" class="form-select" required>
-                    <option value="">Select Template</option>
-                    <option value="template1">Template 1</option>
-                    <option value="template2">Template 2</option>
-                    <option value="template3">Template 3</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">Generate Report</button>
-        </form>
+            
+            <form id="reportForm" class="p-8 space-y-6 bg-gradient-to-b from-white to-[#F7F8F6]">
+                <!-- Email Field -->
+                <div class="space-y-2">
+                    <label for="email" class="block text-[16px] leading-[19.2px] font-normal text-[#061C38]">
+                        Email
+                    </label>
+                    <input type="email" id="email" name="email" required 
+                           class="input-focus w-full px-4 py-3 bg-white border-2 border-[#295782]/20 rounded-lg focus:ring-2 focus:ring-[#295782] focus:border-[#295782] shadow-sm"
+                           placeholder="your.name@company.com">
+                </div>
+
+                <!-- Management Select -->
+                <div class="space-y-2">
+                    <label for="management" class="block text-[16px] leading-[19.2px] font-normal text-[#061C38]">
+                        Management Company
+                    </label>
+                    <select id="management" name="management" required 
+                            class="input-focus w-full px-4 py-3 bg-white border-2 border-[#295782]/20 rounded-lg focus:ring-2 focus:ring-[#295782] focus:border-[#295782] shadow-sm appearance-none">
+                        <option value="">Select Company</option>
+                        <% for(let item of managementData) { %>
+                            <option value="<%= item.management %>"><%= item.management %></option>
+                        <% } %>
+                    </select>
+                </div>
+
+                <!-- Client Select -->
+                <div class="space-y-2">
+                    <label for="clientName" class="block text-[16px] leading-[19.2px] font-normal text-[#061C38]">
+                        Project Address
+                    </label>
+                    <select id="clientName" name="clientName" required disabled
+                            class="input-focus w-full px-4 py-3 bg-white border-2 border-[#295782]/20 rounded-lg focus:ring-2 focus:ring-[#295782] focus:border-[#295782] shadow-sm appearance-none disabled:bg-gray-50 disabled:cursor-not-allowed">
+                        <option value="">Select Address</option>
+                    </select>
+                </div>
+
+                <!-- Submit Button - Updated color scheme -->
+                <button type="submit" id="submitBtn"
+                        class="w-full mt-8 px-6 py-4 bg-[#295782] text-[#F7F8F6] text-[16px] leading-[19.2px] font-semibold rounded-lg 
+                               hover:bg-[#1e4268] focus:ring-4 focus:ring-[#295782]/50 focus:ring-offset-2 
+                               transform transition-all duration-200 hover:scale-[1.01] hover:shadow-lg
+                               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                               flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Generate Report
+                </button>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-[#F7F8F6] text-sm">
+            &copy; 2025 LifeCycle360. All rights reserved.
+        </div>
     </div>
 
-    <!-- Store data in a hidden element -->
     <script type="application/json" id="management-data">
         <%- JSON.stringify(managementData) %>
     </script>
 
     <script>
-        // Get the data from the hidden element
-        const managementData = JSON.parse(document.getElementById('management-data').textContent);
-        
-        // Get DOM elements
-        const managementSelect = document.getElementById('management');
-        const clientSelect = document.getElementById('clientName');
+        document.addEventListener('DOMContentLoaded', function() {
+            const managementData = JSON.parse(document.getElementById('management-data').textContent);
+            const managementSelect = document.getElementById('management');
+            const clientSelect = document.getElementById('clientName');
+            const submitBtn = document.getElementById('submitBtn');
+            const form = document.getElementById('reportForm');
 
-        // Handle management selection change
-        managementSelect.addEventListener('change', function() {
-            // Reset client select
-            clientSelect.innerHTML = '<option value="">Select Client Name</option>';
-            clientSelect.disabled = true;
+            managementSelect.addEventListener('change', function() {
+                clientSelect.innerHTML = '<option value="">Select Client</option>';
+                clientSelect.disabled = true;
 
-            if (this.value) {
-                const selected = managementData.find(m => m.management === this.value);
-                if (selected && selected.clientnames) {
-                    selected.clientnames.forEach(client => {
-                        const option = document.createElement('option');
-                        option.value = client;
-                        option.textContent = client;
-                        clientSelect.appendChild(option);
-                    });
-                    clientSelect.disabled = false;
+                if (this.value) {
+                    const selected = managementData.find(m => m.management === this.value);
+                    if (selected?.clientnames) {
+                        selected.clientnames.forEach(client => {
+                            const option = document.createElement('option');
+                            option.value = client;
+                            option.textContent = client;
+                            clientSelect.appendChild(option);
+                        });
+                        clientSelect.disabled = false;
+                    }
                 }
-            }
-        });
-
-        // Handle form submission
-        document.getElementById('reportForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                email: document.getElementById('email').value,
-                management: managementSelect.value,
-                clientName: clientSelect.value,
-                template: document.getElementById('template').value
-            };
-
-            fetch('/api/generate-report', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
-                alert('Report generation initiated.');
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('Error generating report.');
             });
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                submitBtn.disabled = true;
+                const originalContent = submitBtn.innerHTML;
+                submitBtn.innerHTML = `
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                `;
+                
+                try {
+                    const response = await fetch('/api/generate-report', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: document.getElementById('email').value,
+                            management: managementSelect.value,
+                            clientName: clientSelect.value
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to generate report');
+                    
+                    showNotification('Report generation initiated successfully', 'success');
+                    form.reset();
+                } catch (error) {
+                    console.error('Error:', error);
+                    showNotification('Error generating report. Please try again.', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalContent;
+                }
+            });
+
+            function showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg ${
+                    type === 'success' ? 'bg-[#295782]' : 'bg-red-500'
+                } text-white transform transition-all duration-300`;
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-1rem)';
+                
+                const icon = document.createElement('div');
+                icon.className = 'flex items-center gap-2';
+                icon.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        ${type === 'success' 
+                            ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+                            : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+                        }
+                    </svg>
+                    <span>${message}</span>
+                `;
+                
+                notification.appendChild(icon);
+                document.body.appendChild(notification);
+                
+                requestAnimationFrame(() => {
+                    notification.style.opacity = '1';
+                    notification.style.transform = 'translateY(0)';
+                });
+
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateY(-1rem)';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
         });
     </script>
 </body>

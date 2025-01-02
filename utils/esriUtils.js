@@ -2,6 +2,15 @@ const fetch = require('node-fetch');
 const fs = require('fs').promises;
 const path = require('path');
 
+async function queryEsriFeaturesBasic(url, fields, where = '1=1', maxRecordCount = 1000) {
+    let allFeatures = [];
+    const queryUrl = `${url}/query?where=${encodeURIComponent(where)}&outFields=${fields.join(',')}&returnGeometry=false&f=json`;   
+    const response = await fetch(queryUrl);
+    const data = await response.json(); 
+    allFeatures = allFeatures.concat(data.features.map(f => f.attributes));     
+return allFeatures;
+}
+
 async function queryEsriFeatures(url, fields, where = '1=1', maxRecordCount = 1000) {
   let allFeatures = [];
   let resultOffset = 0;
@@ -156,6 +165,7 @@ async function downloadAllImages(features, outputDir = './images') {
 }
 
 module.exports = { 
+    queryEsriFeaturesBasic,
     queryEsriFeatures,
     queryFeatureAttachments,
     queryFeaturesWithAttachments,
