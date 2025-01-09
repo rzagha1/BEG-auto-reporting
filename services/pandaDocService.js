@@ -20,11 +20,10 @@ class PandadocService {
                 categoryImages.forEach((image, index) => {
                     images.push({
                         name: image.block_id,
-                        urls: [image.url+'?w=100'],
+                        urls: [image.url+'?w=175'],
                     });
                 });
             }
-
             // Create document request
             const documentCreateRequest = {
                 name: `Building Inspection Report - ${data.clientName}`,
@@ -41,6 +40,9 @@ class PandadocService {
                     { name: "Client.Company", value: data.management },
                     { name: "Client.FirstName", value: data.fn },
                     { name: "Client.LastName", value: data.ln },
+                    { name: "bspec_type", value: data.bspec_type },
+                    { name: "bspec_height", value: data.bspec_height },
+                    { name: "bspec_material", value: data.bspec_materials },
                     { name: "Report.Month", value: new Date().toLocaleString('en-US', { month: 'long' }) },
                     { name: "Report.Year", value: new Date().getFullYear().toString() }
                 ],

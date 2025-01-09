@@ -36,7 +36,7 @@ class QueryController {
         try {
             // Create organized data structure
             const managementMap = features.reduce((acc, curr) => {
-                const { management, clientname,firstname,lastname } = curr;
+                const { management, clientname } = curr;
                 
                 if (!management || !clientname) {
                     return acc;
@@ -44,8 +44,6 @@ class QueryController {
 
                 const cleanManagement = this.sanitizeString(management);
                 const cleanClientname = this.sanitizeString(clientname);
-                const fn = this.sanitizeString(firstname);
-                const ln = this.sanitizeString(lastname);
                 
                 if (!cleanManagement || !cleanClientname) {
                     return acc;
@@ -55,14 +53,10 @@ class QueryController {
                     acc[cleanManagement] = {
                         management: cleanManagement,
                         clientnames: new Set(),
-                        firstname: fn,
-                        lastname: ln
                     };
                 }
 
                 acc[cleanManagement].clientnames.add(cleanClientname);
-                acc[cleanManagement].firstname=fn;
-                acc[cleanManagement].lastname=ln;
                 return acc;
             }, {});
 
@@ -98,13 +92,14 @@ class QueryController {
                     error: validationError 
                 });
             }
-            const { email, management, clientName } = req.body;
-
+            const { email, management, clientName,startDate,endDate } = req.body;
             // Generate report
             const result = await this.queryService.generateReport(
                 email,
                 management, 
-                clientName
+                clientName,
+                startDate,
+                endDate
             );
 
             // Send success response

@@ -18,7 +18,7 @@ class QueryService {
         }
     }
 
-    async getReportData(clientName) {
+    async getReportData(clientName, startDate, endDate) {
         try {
             const fields = [
                 'objectid',
@@ -29,7 +29,14 @@ class QueryService {
                 'Category',
                 'Choice'
             ];
-            const where = `ClientName='${clientName}' AND Share='Yes'`;
+    
+            let where = `ClientName='${clientName}' AND Share='Yes'`;
+            
+            // Add date filters only if both dates are provided
+            if (startDate && endDate) {
+                where += ` AND (CreationDate BETWEEN  Date '${startDate}' and Date '${endDate}')`;
+                
+            }  
             const reportData = await queryFeaturesWithAttachments(config.inspectionUrl, fields, where);
             return this.organizeCategoryImages(reportData);
         } catch (error) {
@@ -94,19 +101,27 @@ class QueryService {
         return categoryImages;
     }
 
-    async generateReport(email,management, clientName) {
+    async generateReport(email,management, clientName,startdate,enddate) {
         try {
-            const clientInfo = await queryEsriFeaturesBasic(config.clientUrl,['firstname','lastname'],`management='${management}' and clientname='${clientName}'`)
-            const categoryImages = await this.getReportData(clientName);       
-            const fn= clientInfo[0].firstname;
-            const ln=clientInfo[0].lastname;
+            const basicFieldsClient=['firstname','lastname','Bspec_Type','BSpec_Height','BSpec_Materials'];
+            const clientInfo = await queryEsriFeaturesBasic(config.clientUrl,basicFieldsClient,`management='${management}' and clientname='${clientName}'`);
+            const ci=clientInfo[0];
+            const categoryImages = await this.getReportData(clientName,startdate,enddate);     
+            const fn= ci.firstname;
+            const ln=ci.lastname;
+            const bspec_type=ci.Bspec_Type;
+            const bspec_height=ci.BSpec_Height;
+            const bspec_materials=ci.BSpec_Materials;
             const document = await this.pandadocService.createDocumentFromTemplate({
                 email,
                 clientName,
                 management,
                 categoryImages,
                 fn,
-                ln
+                ln,
+                bspec_height,
+                bspec_materials,
+                bspec_type
             });
 
             await this.pandadocService.ensureDocumentCreated(document);
