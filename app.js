@@ -28,8 +28,10 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Static file serving
-app.use('/api/images', express.static(path.join(__dirname, 'public/images')));
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use('/api/images', express.static(path.join(__dirname, 'public/images')));
+//app.use(express.static(path.join(__dirname, 'public')));
+// Remove the dual static setups and use a single, clear one
+app.use('/static', express.static(path.join(__dirname, 'public')));
 
 // Serve the form at root
 app.get('/', queryController.getFormData.bind(queryController));

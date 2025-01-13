@@ -18,9 +18,10 @@ class PandadocService {
                 if (!categoryImages || categoryImages.length === 0) continue;
 
                 categoryImages.forEach((image, index) => {
+                    if (image.block_id)
                     images.push({
                         name: image.block_id,
-                        urls: [image.url+'?w=175'],
+                        urls: [image.url+'?w=250'],
                     });
                 });
             }
