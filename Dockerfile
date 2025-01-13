@@ -33,14 +33,17 @@
     COPY services/ ./services/
     COPY utils/ ./utils/
     COPY views/ ./views/
+    COPY public/ ./public/  
     COPY app.js .
     COPY config.js .
     COPY directions.txt .
     
     # Create feature_images directory and set permissions
     RUN mkdir -p /usr/src/app/feature_images && \
-        chown -R node:node /usr/src/app && \
-        chmod -R 755 /usr/src/app/feature_images
+    mkdir -p /usr/src/app/public && \    
+    chown -R node:node /usr/src/app && \
+    chmod -R 755 /usr/src/app/feature_images && \
+    chmod -R 755 /usr/src/app/public
     
     # Set user to non-root
     USER node

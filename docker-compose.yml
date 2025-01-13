@@ -16,7 +16,7 @@ services:
       - NODEMON_LEGACY_WATCH=true
       - CHOKIDAR_USEPOLLING=true
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:1000/healthcheck"]
       interval: 10s
       timeout: 5s
       retries: 3
