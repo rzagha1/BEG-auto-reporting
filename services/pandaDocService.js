@@ -21,7 +21,7 @@ class PandadocService {
                     if (image.block_id)
                     images.push({
                         name: image.block_id,
-                        urls: [image.url+'?w=250'],
+                        urls: [image.url+'?w=200'],
                     });
                 });
             }
