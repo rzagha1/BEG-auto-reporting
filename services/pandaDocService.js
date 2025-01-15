@@ -28,7 +28,7 @@ class PandadocService {
             // Create document request
             const documentCreateRequest = {
                 name: `Building Inspection Report - ${data.clientName}`,
-                templateUuid: config.pandaTemplateID,
+                templateUuid: data.panddocid,
                 recipients: [
                     {
                         email: data.email,
@@ -90,6 +90,7 @@ class PandadocService {
 
     async sendDocument(document) {
         try {
+            // Send the document
             await this.apiInstance.sendDocument({
                 id: String(document.id),
                 documentSendRequest: {
@@ -103,6 +104,7 @@ class PandadocService {
             throw error;
         }
     }
+    
 }
 
 module.exports = PandadocService;

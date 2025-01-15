@@ -36,26 +36,21 @@ class QueryController {
         try {
             // Create organized data structure
             const managementMap = features.reduce((acc, curr) => {
-                const { management, clientname } = curr;
-                
+                const { management, clientname } = curr;                
                 if (!management || !clientname) {
                     return acc;
                 }
-
                 const cleanManagement = this.sanitizeString(management);
-                const cleanClientname = this.sanitizeString(clientname);
-                
+                const cleanClientname = this.sanitizeString(clientname);                
                 if (!cleanManagement || !cleanClientname) {
                     return acc;
                 }
-
                 if (!acc[cleanManagement]) {
                     acc[cleanManagement] = {
                         management: cleanManagement,
                         clientnames: new Set(),
                     };
                 }
-
                 acc[cleanManagement].clientnames.add(cleanClientname);
                 return acc;
             }, {});
@@ -92,12 +87,13 @@ class QueryController {
                     error: validationError 
                 });
             }
-            const { email, management, clientName,startDate,endDate } = req.body;
+            const { email, management, clientName,template,startDate,endDate } = req.body;
             // Generate report
             const result = await this.queryService.generateReport(
                 email,
                 management, 
                 clientName,
+                template,
                 startDate,
                 endDate
             );

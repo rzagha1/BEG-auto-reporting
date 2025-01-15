@@ -81,8 +81,6 @@
             </div>
             
             <form id="reportForm" class="p-6 space-y-1 bg-gradient-to-b from-white to-[#F7F8F6]">
-                <!-- Email Field -->
-                <!-- Email Field -->
 <div class="space-y-2">
     <label for="email" class="block text-[16px] leading-[19.2px] font-normal text-[#061C38]">
         Email
@@ -114,6 +112,17 @@
     <select id="clientName" name="clientName" required disabled
             class="input-focus w-full px-4 py-3 bg-white border-2 border-[#295782]/20 rounded-lg focus:ring-2 focus:ring-[#295782] focus:border-[#295782] shadow-sm appearance-none disabled:bg-gray-50 disabled:cursor-not-allowed">
         <option value="">Select Address</option>
+    </select>
+</div>
+
+<div class="space-y-2">
+    <label for="template" class="block text-[16px] leading-[19.2px] font-normal text-[#061C38]">
+        PandaDoc Template
+    </label>
+    <select id="template" name="template" required 
+            class="input-focus w-full px-4 py-3 bg-white border-2 border-[#295782]/20 rounded-lg focus:ring-2 focus:ring-[#295782] focus:border-[#295782] shadow-sm appearance-none disabled:bg-gray-50 disabled:cursor-not-allowed">
+        <option value="Short">Short</option>
+        <option value="Long">Long</option>
     </select>
 </div>
 
@@ -171,6 +180,7 @@
     const clientSelect = document.getElementById('clientName');
     const submitBtn = document.getElementById('submitBtn');
     const form = document.getElementById('reportForm');
+    const template = document.getElementById('template');
     
     managementSelect.addEventListener('change', function() {
         clientSelect.innerHTML = '<option value="">Select Address</option>';
@@ -206,6 +216,7 @@
             email: document.getElementById('email').value,
             management: managementSelect.value,
             clientName: clientSelect.value,
+            template: template.value,
             startDate: document.getElementById('startDate').value || null,
             endDate: document.getElementById('endDate').value || null
         };
