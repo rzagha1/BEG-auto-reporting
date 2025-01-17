@@ -13,10 +13,36 @@ class PandadocService {
     async createDocumentFromTemplate(data) {
         try {
             // Collect all images first
-             const images = [];
+            const images = [];
+            
+            // Create a mapping of categories to their template variables
+            const categoryVariables = {
+                djsc: 'delete_page_djsc',
+                wg: 'delete_page_wg',
+                csmc: 'delete_page_csmc',
+                sbsmc: 'delete_page_sbsmc',
+                mhi: 'delete_page_mhi',
+                pfci: 'delete_page_pfci',
+                fs: 'delete_page_fs',
+                ws: 'delete_page_ws',
+                oi: 'delete_page_oi',
+                ni: 'delete_page_ni'
+            };
+    
+            // Initialize delete tokens array
+            const deleteTokens = [];
+    
             for (const [category, categoryImages] of Object.entries(data.categoryImages)) {
+                // If category has no images, add DELETE token
+                if (!categoryImages || categoryImages.length === 0) {
+                    deleteTokens.push({
+                        name: categoryVariables[category],
+                        value: 'DELETE'
+                    });
+                }
+    
+                // Continue with existing image processing
                 if (!categoryImages || categoryImages.length === 0) continue;
-
                 categoryImages.forEach((image, index) => {
                     if (image.block_id)
                     images.push({
@@ -25,6 +51,7 @@ class PandadocService {
                     });
                 });
             }
+    
             // Create document request
             const documentCreateRequest = {
                 name: `Building Inspection Report - ${data.clientName}`,
@@ -45,16 +72,17 @@ class PandadocService {
                     { name: "bspec_height", value: data.bspec_height },
                     { name: "bspec_material", value: data.bspec_materials },
                     { name: "Report.Month", value: new Date().toLocaleString('en-US', { month: 'long' }) },
-                    { name: "Report.Year", value: new Date().getFullYear().toString() }
+                    { name: "Report.Year", value: new Date().getFullYear().toString() },
+                    ...deleteTokens  // Add the delete tokens to the existing tokens array
                 ],
                 metadata: {
                     clientName: data.clientName,
                     management: data.management
                 },
                 tags: ["inspection_report", "building_maintenance"],
-                images: images  // Add images at root level
+                images: images
             };
-
+    
             console.log('Document Request:', JSON.stringify(documentCreateRequest, null, 2));
             return await this.apiInstance.createDocument({
                 documentCreateRequest
