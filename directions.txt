@@ -9,3 +9,6 @@ pandadoc api = 8a6b9db502ab1974003eda429484279251eedf53
 
 dates drop down
 
+
+
+docker compose down &&  docker compose up app-dev
