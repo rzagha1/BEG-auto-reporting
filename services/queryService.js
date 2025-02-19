@@ -167,7 +167,7 @@ const CATEGORY_MAPPING = {
             ['window glazing', ['deteriorated', 'missing']]
         ]
     },
-    'csmc': {
+    'cbsmc': {
         matches: [
             ['brick', ['broken brick']],
             ['concrete', ['cracking', 'cracks', 'falling apart', 'something wrong']],
