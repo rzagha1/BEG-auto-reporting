@@ -19,7 +19,7 @@ class PandadocService {
             const categoryVariables = {
                 djsc: 'delete_page_djsc',
                 wg: 'delete_page_wg',
-                csmc: 'delete_page_csmc',
+                cbsmc: 'delete_page_cbsmc',
                 sbsmc: 'delete_page_sbsmc',
                 mhi: 'delete_page_mhi',
                 pfci: 'delete_page_pfci',
