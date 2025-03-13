@@ -21,7 +21,7 @@ class PandadocService {
                 wg: 'delete_page_wg',
                 cbsmc: 'delete_page_cbsmc',
                 sbsmc: 'delete_page_sbsmc',
-                mhi: 'delete_page_mhi',
+                mji: 'delete_page_mji',
                 pfci: 'delete_page_pfci',
                 fs: 'delete_page_fs',
                 ws: 'delete_page_ws',
