@@ -181,7 +181,7 @@ const CATEGORY_MAPPING = {
             ['stone', ['spalling']]
         ]
     },
-    'mj': {
+    'mji': {
         matches: [
             ['brick', ['bad mortar']]
         ]
