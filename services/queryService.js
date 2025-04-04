@@ -82,9 +82,10 @@ class QueryService {
                     break;
                 }
             }
-
+            /*
             // If no match found, add to other issues
             if (!matched && item.picUrl) {
+                debugger
                 const imageIndex = categoryImages['oi'].length + 1;
                 if (imageIndex <= shortlong) {
                     categoryImages['oi'].push({
@@ -98,6 +99,7 @@ class QueryService {
                     });
                 }
             }
+                */
         });
 
         return categoryImages;
@@ -135,15 +137,8 @@ class QueryService {
                 bspec_type,
                 panddocid
             });
-
-
-
-            await this.pandadocService.ensureDocumentCreated(document);
-            
-            await this.pandadocService.sendDocument(document);
-            
-
-
+            await this.pandadocService.ensureDocumentCreated(document);            
+            await this.pandadocService.sendDocument(document);            
             return {
                 documentId: document.id,
                 status: 'completed'
@@ -155,7 +150,65 @@ class QueryService {
     }
 }
 
+// Restructured category mapping based on Auto-Report categories as the main keys
+const CATEGORY_MAPPING = {
+    'fs': {
+        matches: [
+            ['façade surface', ['bad']]
+        ]
+    },
+    'djsc': {
+        matches: [
+            ['caulking', ['bad']],
+            ['glazing', ['bad']],
+            ['window glazing', ['bad']]
+        ]
+    },
+    'cbsmc': {
+        matches: [
+            ['brick', ['bad']],
+            ['stone', ['bad']]
+        ]
+    },
+    'oi': {
+        matches: [
+            ['anchor', ['bad']],
+            ['coating', ['bad']],
+            ['concrete', ['bad']],
+            ['drains', ['bad']],
+            ['glass', ['bad']],
+            ['metal', ['bad']],
+            ['other', ['bad']],
+            ['roof', ['bad']]
+        ]
+    }
+
+};
+
+
+    /*
+        'ni': {
+        matches: [
+            ['anchor', ['good']],
+            ['brick', ['good']],
+            ['caulking', ['good']],
+            ['coating', ['good']],
+            ['concrete', ['good']],
+            ['drains', ['good']],
+            ['façade surface', ['good']],
+            ['glass', ['good']],
+            ['glazing', ['good']],
+            ['metal', ['good']],
+            ['other', ['good']],
+            ['roof', ['good']],
+            ['stone', ['good']],
+            ['window glazing', ['good']]
+        ]
+    }
+
+        */
 // Simplified category mapping using blockIdPrefix as key
+/*
 const CATEGORY_MAPPING = {
     'djsc': {
         matches: [
@@ -220,6 +273,8 @@ const CATEGORY_MAPPING = {
             ['walls', ['good']]
         ]
     }
+        
 };
+*/
 
 module.exports = QueryService;
