@@ -154,7 +154,7 @@ class QueryService {
 const CATEGORY_MAPPING = {
     'fs': {
         matches: [
-            ['façade surface', ['bad']]
+            ['facade surface', ['bad']]
         ]
     },
     'djsc': {
