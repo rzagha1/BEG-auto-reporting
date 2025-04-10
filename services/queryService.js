@@ -1,6 +1,71 @@
-const { queryEsriFeatures,queryEsriFeaturesBasic, queryFeaturesWithAttachments } = require('../utils/esriUtils');
+const { queryEsriFeatures, queryEsriFeaturesBasic, queryFeaturesWithAttachments } = require('../utils/esriUtils');
 const config = require('../config');
 const PandadocService = require('./pandaDocService');
+
+// Category mappings
+const SHORT_LONG_CATEGORY_MAPPING = {
+    'fs': {
+        page: 1,
+        matches: [
+            ['facade surface', ['bad']]
+        ]
+    },
+    'djsc': {
+        page: 2,
+        matches: [
+            ['caulking', ['bad']],
+            ['glazing', ['bad']],
+            ['window glazing', ['bad']]
+        ]
+    },
+    'cbsmc': {
+        page: 3,
+        matches: [
+            ['brick', ['bad']],
+            ['stone', ['bad']],
+            ['concrete', ['bad']],
+        ]
+    },
+    'oi': {
+        page: 4,
+        matches: [
+            ['anchor', ['bad']],
+            ['coating', ['bad']],  
+            ['drains', ['bad']],
+            ['glass', ['bad']],
+            ['metal', ['bad']],
+            ['other', ['bad']],
+            ['roof', ['bad']]
+        ]
+    }
+};
+
+const NO_ISSUES_MAPPING = {
+    'ni': {
+        page: 1,
+        matches: [
+            ['anchor', ['good']],
+            ['brick', ['good']],
+            ['caulking', ['good']],
+            ['coating', ['good']],
+            ['concrete', ['good']],
+            ['drains', ['good']],
+            ['facade surface', ['good']],
+            ['glass', ['good']],
+            ['glazing', ['good']],
+            ['metal', ['good']],
+            ['other', ['good']],
+            ['roof', ['good']],
+            ['stone', ['good']],
+            ['window glazing', ['good']]
+        ]
+    }
+};
+
+const EVERYTHING_MAPPING = {
+    'e': {}
+    
+};
 
 class QueryService {
     constructor() {
@@ -9,66 +74,93 @@ class QueryService {
 
     async getClientData() {
         try {
-            const fields = ['objectid', 'globalid', 'clientname', 'management','firstname','lastname'];
-            const clientData = await queryEsriFeatures(config.clientUrl, fields);
-            return clientData;
+            const fields = ['objectid', 'globalid', 'clientname', 'management', 'firstname', 'lastname'];
+            return await queryEsriFeatures(config.clientUrl, fields);
         } catch (error) {
             console.error('Error fetching client data:', error);
-            throw new Error('Failed to fetch client data');
+            throw error;
         }
     }
 
-    async getReportData(clientName, template,startDate, endDate) {
+    async getReportData(clientName, template, startDate, endDate) {
         try {
             const fields = [
-                'objectid',
-                'globalid',
-                'ClientName',
-                'management',
-                'InspectionDate',
-                'Category',
-                'Choice'
+                'objectid', 'globalid', 'ClientName', 'management',
+                'InspectionDate', 'Category', 'Choice'
             ];
     
             let where = `ClientName='${clientName}' AND Share='Yes'`;
             
-            // Add date filters only if both dates are provided
             if (startDate && endDate) {
-                where += ` AND (CreationDate BETWEEN  Date '${startDate}' and Date '${endDate}')`;
-                
-            }  
-            const reportData = await queryFeaturesWithAttachments(config.inspectionUrl, fields, where);
-            if (template ==='Long'){
-                return this.organizeCategoryImages(reportData,14);
+                where += ` AND (CreationDate BETWEEN Date '${startDate}' AND Date '${endDate}')`;
             }
-            else {return this.organizeCategoryImages(reportData,6) }
-
+            
+            const reportData = await queryFeaturesWithAttachments(config.inspectionUrl, fields, where);
+            
+            // Handle "Everything" template specially
+            if (template === 'Everything') {
+                return this.organizeEverythingImages(reportData, 12);
+            }
+            
+            // Select mapping based on template
+            const mapping = template === 'No Issues' ? NO_ISSUES_MAPPING : SHORT_LONG_CATEGORY_MAPPING;
+            const maxImages = template === 'Long' ? 14 : template === 'Short' ? 6 : 12;
+            
+            return this.organizeCategoryImages(reportData, maxImages, mapping);
         } catch (error) {
             console.error('Error fetching report data:', error);
-            throw new Error('Failed to fetch report data');
+            throw error;
         }
     }
+    
+    organizeEverythingImages(reportData, maxImages) {
+        const result = { 'e': [] };
+        
+        // Just take the first maxImages items with pictures
+        let count = 0;
+        for (const item of reportData) {
+            if (!item.picUrl) continue;
+            if (count >= maxImages) break;
+            
+            result.e.push({
+                objectid: item.objectid,
+                url: item.picUrl,
+                category: item.Category || '',
+                choice: item.Choice || '',
+                inspectionDate: item.InspectionDate,
+                pageNumber: 1,
+                block_id: `e${count + 1}`
+            });
+            
+            count++;
+        }
+        
+        return result;
+    }
+            
 
-    organizeCategoryImages(reportData,shortlong) {
+    organizeCategoryImages(reportData, maxImages, categoryMapping) {
         const categoryImages = {};
+        
         // Initialize categories
-        Object.keys(CATEGORY_MAPPING).forEach(prefix => {
+        Object.keys(categoryMapping).forEach(prefix => {
             categoryImages[prefix] = [];
         });
+        
         // Process each report item
-        reportData.forEach(item => {
+        for (const item of reportData) {
+            if (!item.picUrl) continue;
+            
             const itemCategory = (item.Category || '').toLowerCase();
             const itemChoice = (item.Choice || '').toLowerCase();
-
-            // Find matching category
-            let matched = false;
-            for (const [prefix, category] of Object.entries(CATEGORY_MAPPING)) {
+            
+            for (const [prefix, category] of Object.entries(categoryMapping)) {
                 if (category.matches.some(([cat, choices]) => 
                     cat === itemCategory && choices.includes(itemChoice)
                 )) {
-                    matched = true;
                     const imageIndex = categoryImages[prefix].length + 1;
-                    if (imageIndex <= shortlong) {
+                    
+                    if (imageIndex <= maxImages) {
                         categoryImages[prefix].push({
                             objectid: item.objectid,
                             url: item.picUrl,
@@ -82,131 +174,58 @@ class QueryService {
                     break;
                 }
             }
-            /*
-            // If no match found, add to other issues
-            if (!matched && item.picUrl) {
-                debugger
-                const imageIndex = categoryImages['oi'].length + 1;
-                if (imageIndex <= shortlong) {
-                    categoryImages['oi'].push({
-                        objectid: item.objectid,
-                        url: item.picUrl,
-                        category: itemCategory,
-                        choice: itemChoice,
-                        inspectionDate: item.InspectionDate,
-                        pageNumber: CATEGORY_MAPPING['oi'].page,
-                        block_id: `oi${imageIndex}`
-                    });
-                }
-            }
-                */
-        });
-
+        }
+        
         return categoryImages;
     }
 
-    async generateReport(email,management, clientName,template,startdate,enddate) {
+    async generateReport(email, management, clientName, template, startDate, endDate) {
         try {
-            const basicFieldsClient=['firstname','lastname','Bspec_Type','BSpec_Height','BSpec_Materials'];
-            const clientInfo = await queryEsriFeaturesBasic(config.clientUrl,basicFieldsClient,`management='${management}' and clientname='${clientName}'`);
-            const ci=clientInfo[0];
-            const categoryImages = await this.getReportData(clientName,template,startdate,enddate);     
-            const fn= ci.firstname;
-            const ln=ci.lastname;
-            const bspec_type=ci.Bspec_Type;
-            const bspec_height=ci.BSpec_Height;
-            const bspec_materials=ci.BSpec_Materials;
-
-            let panddocid;
-            if (template ==='Long'){
-                panddocid=config.pandaTemplateIDLong;
-            }
-            else if(template==='Short'){
-                panddocid=config.pandaTemplateIDShort;
-            }
-
+            // Get client info
+            const clientFields = ['firstname', 'lastname', 'Bspec_Type', 'BSpec_Height', 'BSpec_Materials'];
+            const clientWhere = `management='${management}' AND clientname='${clientName}'`;
+            const clientInfo = await queryEsriFeaturesBasic(config.clientUrl, clientFields, clientWhere);
+            
+            if (!clientInfo.length) throw new Error(`Client not found: ${clientName}`);
+            
+            const client = clientInfo[0];
+            const categoryImages = await this.getReportData(clientName, template, startDate, endDate);
+            
+            // Determine template ID
+            let templateId;
+            if (template === 'Long') templateId = config.pandaTemplateIDLong;
+            else if (template === 'Short') templateId = config.pandaTemplateIDShort;
+            else if (template === 'No Issues') templateId = config.pandaTemplateIDNoIssues;
+            else if (template === 'Everything') templateId = config.pandaTemplateIDEverything;
+            else throw new Error(`Invalid template: ${template}`);
+            
+            // Create and send document
             const document = await this.pandadocService.createDocumentFromTemplate({
                 email,
                 clientName,
                 management,
                 categoryImages,
-                fn,
-                ln,
-                bspec_height,
-                bspec_materials,
-                bspec_type,
-                panddocid
+                fn: client.firstname,
+                ln: client.lastname,
+                bspec_height: client.BSpec_Height,
+                bspec_materials: client.BSpec_Materials,
+                bspec_type: client.Bspec_Type,
+                panddocid: templateId
             });
-            await this.pandadocService.ensureDocumentCreated(document);            
-            await this.pandadocService.sendDocument(document);            
-            return {
-                documentId: document.id,
-                status: 'completed'
-            };
+            
+            await this.pandadocService.ensureDocumentCreated(document);
+            await this.pandadocService.sendDocument(document);
+            
+            return { documentId: document.id, status: 'completed' };
         } catch (error) {
             console.error('Error generating report:', error);
-            throw new Error(`Failed to generate report: ${error.message}`);
+            throw error;
         }
     }
 }
 
-// Restructured category mapping based on Auto-Report categories as the main keys
-const CATEGORY_MAPPING = {
-    'fs': {
-        matches: [
-            ['facade surface', ['bad']]
-        ]
-    },
-    'djsc': {
-        matches: [
-            ['caulking', ['bad']],
-            ['glazing', ['bad']],
-            ['window glazing', ['bad']]
-        ]
-    },
-    'cbsmc': {
-        matches: [
-            ['brick', ['bad']],
-            ['stone', ['bad']]
-        ]
-    },
-    'oi': {
-        matches: [
-            ['anchor', ['bad']],
-            ['coating', ['bad']],
-            ['concrete', ['bad']],
-            ['drains', ['bad']],
-            ['glass', ['bad']],
-            ['metal', ['bad']],
-            ['other', ['bad']],
-            ['roof', ['bad']]
-        ]
-    }
+module.exports = QueryService;
 
-};
-
-
-    /*
-        'ni': {
-        matches: [
-            ['anchor', ['good']],
-            ['brick', ['good']],
-            ['caulking', ['good']],
-            ['coating', ['good']],
-            ['concrete', ['good']],
-            ['drains', ['good']],
-            ['façade surface', ['good']],
-            ['glass', ['good']],
-            ['glazing', ['good']],
-            ['metal', ['good']],
-            ['other', ['good']],
-            ['roof', ['good']],
-            ['stone', ['good']],
-            ['window glazing', ['good']]
-        ]
-    }
-
-        */
 // Simplified category mapping using blockIdPrefix as key
 /*
 const CATEGORY_MAPPING = {
@@ -276,5 +295,3 @@ const CATEGORY_MAPPING = {
         
 };
 */
-
-module.exports = QueryService;
