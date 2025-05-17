@@ -82,7 +82,7 @@ class QueryService {
         }
     }
 
-    async getReportData(clientName, template, startDate, endDate) {
+    async getReportData(clientName, template, startDate, endDate, quickcaptureApp) {
         try {
             const fields = [
                 'objectid', 'globalid', 'ClientName', 'management',
@@ -93,6 +93,9 @@ class QueryService {
             
             if (startDate && endDate) {
                 where += ` AND (CreationDate BETWEEN Date '${startDate}' AND Date '${endDate}')`;
+            }
+            if (quickcaptureApp) {
+                where += ` AND QuickcaptureApp='${quickcaptureApp}'`;
             }
             
             const reportData = await queryFeaturesWithAttachments(config.inspectionUrl, fields, where);
