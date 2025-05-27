@@ -94,7 +94,7 @@ class QueryService {
             if (startDate && endDate) {
                 where += ` AND (CreationDate BETWEEN Date '${startDate}' AND Date '${endDate}')`;
             }
-            if (quickcaptureApp) {
+            if (quickcaptureApp && quickcaptureApp !== "") {
                 where += ` AND QuickcaptureApp='${quickcaptureApp}'`;
             }
             
