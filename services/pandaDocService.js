@@ -64,6 +64,7 @@ class PandadocService {
                     }
                 ],
                 tokens: [
+                    { name: "CreationDate", value: this.getFormattedDate() },
                     { name: "Client.StreetAddress", value: data.clientName },
                     { name: "Client.Company", value: data.management },
                     { name: "Client.FirstName", value: data.fn },
@@ -92,7 +93,13 @@ class PandadocService {
             throw error;
         }
     }
-
+    getFormattedDate() {
+        const date = new Date();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}/${day}/${year}`;
+      }
     async ensureDocumentCreated(document) {
         const MAX_CHECK_RETRIES = 5;
         let retries = 0;
