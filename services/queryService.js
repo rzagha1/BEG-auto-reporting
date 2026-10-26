@@ -89,6 +89,8 @@ class QueryService {
                 'InspectionDate', 'Category', 'Choice'
             ];
     
+            if (template === 'Everything') fields.push('Notes');
+
             let where = `ClientName='${clientName}' AND Share='Yes'`;
             
             if (startDate && endDate) {
@@ -128,6 +130,7 @@ class QueryService {
             result.e.push({
                 objectid: item.objectid,
                 url: item.picUrl,
+                notes: item.Notes ?? '',
                 category: item.Category || '',
                 choice: item.Choice || '',
                 inspectionDate: item.InspectionDate,
