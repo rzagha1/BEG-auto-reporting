@@ -1,3 +1,13 @@
 Development: docker compose down &&  docker compose up app-dev
 
 Production: docker compose down && docker compose up app-prod
+
+Pierce Condition Assessment notes
+Template: ErPr5h4EdjXD6GRfVBKYHa (Everything / Condition Assessment - Photos Only).
+Each image block e1 through e12 has a corresponding text variable [e1_notes] through [e12_notes].
+Keep each variable in the text block beside its matching image; the app fills it from that inspection point's Notes field.
+Template variables have a zero-width-space default so older deployments still render blank captions.
+Missing Notes and unused image slots are sent as empty strings. Existing image selection and the 12-image limit are unchanged.
+Run npm ci, then npm test for offline pairing and report regression checks.
+For a live check, create an unsent draft with createDocumentFromTemplate and ensureDocumentCreated, then inspect its PDF.
+Do not use generateReport for testing: it calls sendDocument and emails the recipient.

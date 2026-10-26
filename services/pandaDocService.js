@@ -52,6 +52,14 @@ class PandadocService {
                 });
             }
     
+            // Match each caption to its image slot, including empty slots.
+            const noteTokens = data.panddocid === config.pandaTemplateIDEverything
+                ? Array.from({ length: 12 }, (_, index) => ({
+                    name: `e${index + 1}_notes`,
+                    value: (data.categoryImages.e || []).find(image => image.block_id === `e${index + 1}`)?.notes ?? ''
+                }))
+                : [];
+
             // Create document request
             const documentCreateRequest = {
                 name: `Building Inspection Report - ${data.clientName}`,
@@ -74,6 +82,7 @@ class PandadocService {
                     { name: "bspec_material", value: data.bspec_materials },
                     { name: "Report.Month", value: new Date().toLocaleString('en-US', { month: 'long' }) },
                     { name: "Report.Year", value: new Date().getFullYear().toString() },
+                    ...noteTokens,
                     ...deleteTokens  // Add the delete tokens to the existing tokens array
                 ],
                 metadata: {
