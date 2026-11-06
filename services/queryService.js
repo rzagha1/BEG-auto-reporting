@@ -97,7 +97,7 @@ class QueryService {
                 where += ` AND (CreationDate BETWEEN Date '${startDate}' AND Date '${endDate}')`;
             }
             if (quickcaptureApp && quickcaptureApp !== "") {
-                where += ` AND QuickcaptureApp='${quickcaptureApp}'`;
+                where += ` AND QuickcaptureApp='${quickcaptureApp.replace(/'/g, "''")}'`;
             }
             
             const reportData = await queryFeaturesWithAttachments(config.inspectionUrl, fields, where);
@@ -185,7 +185,7 @@ class QueryService {
         return categoryImages;
     }
 
-    async generateReport(email, management, clientName, template, startDate, endDate) {
+    async generateReport(email, management, clientName, template, startDate, endDate, quickcaptureApp) {
         try {
             // Get client info
             const clientFields = ['firstname', 'lastname', 'Bspec_Type', 'BSpec_Height', 'BSpec_Materials'];
@@ -195,7 +195,7 @@ class QueryService {
             if (!clientInfo.length) throw new Error(`Client not found: ${clientName}`);
             
             const client = clientInfo[0];
-            const categoryImages = await this.getReportData(clientName, template, startDate, endDate);
+            const categoryImages = await this.getReportData(clientName, template, startDate, endDate, quickcaptureApp);
             
             // Determine template ID
             let templateId;

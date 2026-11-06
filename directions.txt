@@ -1,13 +1,23 @@
-Development: docker compose down &&  docker compose up app-dev
+Development: docker compose down &&  docker compose up --build app-dev
 
-Production: docker compose down && docker compose up app-prod
+Production: docker compose down && docker compose up --build app-prod
 
 Pierce Condition Assessment notes
 Template: ErPr5h4EdjXD6GRfVBKYHa (Everything / Condition Assessment - Photos Only).
 Each image block e1 through e12 has a corresponding text variable [e1_notes] through [e12_notes].
 Keep each variable in the text block beside its matching image; the app fills it from that inspection point's Notes field.
+Text block property names (such as Text 1) do not need to change; the variables inside the text are what the app fills.
 Template variables have a zero-width-space default so older deployments still render blank captions.
 Missing Notes and unused image slots are sent as empty strings. Existing image selection and the 12-image limit are unchanged.
 Run npm ci, then npm test for offline pairing and report regression checks.
 For a live check, create an unsent draft with createDocumentFromTemplate and ensureDocumentCreated, then inspect its PDF.
 Do not use generateReport for testing: it calls sendDocument and emails the recipient.
+If photos populate but Notes stay blank, check the generated document tokens in PandaDoc details.
+If e1_notes through e12_notes still contain the template zero-width-space defaults, the app did not replace them.
+Deploy the latest code and rebuild the app image with --build as above; restarting an existing production image does not update its code.
+Generate a new report after deployment; existing reports are not updated automatically.
+
+Local app: PORT=10000 NODE_ENV=development node app.js (http://localhost:10000).
+Inspection Type includes Roof Inspection and filters inspection records by their exact QuickcaptureApp value.
+Leave Inspection Type blank to include all types. The filter combines with Share=Yes and the optional date range for every report template.
+Run npm test for HTTP-level inspection-type coverage, including Roof Inspection, existing types, date ranges, empty matches, and Notes pairing. These tests do not send email.

@@ -87,7 +87,7 @@ class QueryController {
                     error: validationError 
                 });
             }
-            const { email, management, clientName,template,startDate,endDate } = req.body;
+            const { email, management, clientName,template,startDate,endDate,quickcaptureApp } = req.body;
             // Generate report
             const result = await this.queryService.generateReport(
                 email,
@@ -95,7 +95,8 @@ class QueryController {
                 clientName,
                 template,
                 startDate,
-                endDate
+                endDate,
+                quickcaptureApp
             );
 
             // Send success response
@@ -120,7 +121,7 @@ class QueryController {
     }
 
     validateReportRequest(body) {
-        const { email, management, clientName, template } = body;
+        const { email, management, clientName, template, quickcaptureApp } = body;
 
         if (!management || typeof management !== 'string') {
             return 'Invalid management value';
@@ -128,6 +129,10 @@ class QueryController {
 
         if (!clientName || typeof clientName !== 'string') {
             return 'Invalid client name';
+        }
+
+        if (quickcaptureApp != null && typeof quickcaptureApp !== 'string') {
+            return 'Invalid inspection type';
         }
 
         if (email && !this.isValidEmail(email)) {
